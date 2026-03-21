@@ -26,17 +26,46 @@ MONGO_URI = os.getenv(
     "mongodb+srv://mathan2192003_db_user:dravid_mathavan07_dm@cluster0.nxyoghv.mongodb.net/?appName=Cluster0",
 )
 
-client = MongoClient(MONGO_URI)
-db = client["birthdayDB"]
-users = db["users"]
-users.create_index("email", unique=True)
+client = None
+db = None
+users = None
 
 
 def current_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def init_database():
+    global client, db, users
+
+    if users is not None:
+        return True
+
+    try:
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=10000)
+        db = client["birthdayDB"]
+        users = db["users"]
+        users.create_index("email", unique=True)
+        return True
+    except Exception as exc:
+        app.logger.error(f"MongoDB connection failed: {exc}")
+        client = None
+        db = None
+        users = None
+        return False
+
+
+def database_ready_or_flash():
+    if init_database():
+        return True
+    flash("Database is not connected right now. Please try again in a moment.")
+    return False
+
+
 def ensure_admin_account():
+    if users is None:
+        return
+
     if not ADMIN_EMAIL or not ADMIN_PASSWORD:
         return
 
@@ -71,8 +100,8 @@ def ensure_admin_account():
         }
     )
 
-
-ensure_admin_account()
+if init_database():
+    ensure_admin_account()
 
 
 def get_next_birthday(birthday_string):
@@ -111,6 +140,9 @@ def send_birthday_email(to_email, user_name):
 
 
 def birthday_reminder_job():
+    if not init_database():
+        return
+
     today = datetime.now().date()
     for user in users.find({"role": "user"}):
         try:
@@ -130,6 +162,9 @@ if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
 
 @app.before_request
 def update_user_activity():
+    if not init_database():
+        return
+
     if "user" not in session:
         return
 
@@ -146,6 +181,9 @@ def update_user_activity():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+        if not database_ready_or_flash():
+            return redirect("/register")
+
         email = request.form["email"].strip().lower()
         password = request.form["password"]
         birthday = request.form["birthday"]
@@ -180,6 +218,9 @@ def register():
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
+        if not database_ready_or_flash():
+            return redirect("/")
+
         email = request.form["email"].strip().lower()
         password = request.form["password"]
 
@@ -209,6 +250,9 @@ def login():
 # DASHBOARD
 @app.route("/dashboard")
 def dashboard():
+    if not database_ready_or_flash():
+        return redirect("/")
+
     if "user" not in session:
         return redirect("/")
 
@@ -243,6 +287,9 @@ def dashboard():
 # BIRTHDAY
 @app.route("/birthday")
 def birthday():
+    if not database_ready_or_flash():
+        return redirect("/")
+
     if "user" not in session:
         return redirect("/")
 
@@ -266,6 +313,9 @@ def birthday():
 # ADD NOTE
 @app.route("/add_note", methods=["POST"])
 def add_note():
+    if not database_ready_or_flash():
+        return redirect("/")
+
     if "user" not in session or session.get("role") != "user":
         return redirect("/")
 
@@ -291,6 +341,9 @@ def add_note():
 # ADMIN
 @app.route("/admin")
 def admin():
+    if not database_ready_or_flash():
+        return redirect("/")
+
     if session.get("role") != "admin":
         return redirect("/")
 
@@ -310,6 +363,9 @@ def admin():
 
 @app.route("/admin/send_email/<email>")
 def admin_send_email(email):
+    if not database_ready_or_flash():
+        return redirect("/")
+
     if session.get("role") != "admin":
         return redirect("/")
 
@@ -325,6 +381,9 @@ def admin_send_email(email):
 
 @app.route("/admin/send_today_emails")
 def admin_send_today_emails():
+    if not database_ready_or_flash():
+        return redirect("/")
+
     if session.get("role") != "admin":
         return redirect("/")
 
@@ -335,6 +394,9 @@ def admin_send_today_emails():
 
 @app.route("/birthdays")
 def birthdays():
+    if not database_ready_or_flash():
+        return redirect("/")
+
     if session.get("role") != "admin":
         return redirect("/")
 
@@ -363,6 +425,9 @@ def birthdays():
 # PREVIEW USER
 @app.route("/preview/<email>")
 def preview(email):
+    if not database_ready_or_flash():
+        return redirect("/")
+
     if session.get("role") != "admin":
         return redirect("/")
 
@@ -375,6 +440,9 @@ def preview(email):
 
 @app.route("/notes/<email>")
 def user_notes(email):
+    if not database_ready_or_flash():
+        return redirect("/")
+
     if session.get("role") != "admin":
         return redirect("/")
 
@@ -387,6 +455,9 @@ def user_notes(email):
 
 @app.route("/edit_user/<email>", methods=["GET", "POST"])
 def edit_user(email):
+    if not database_ready_or_flash():
+        return redirect("/")
+
     if session.get("role") != "admin":
         return redirect("/")
 
@@ -415,6 +486,9 @@ def edit_user(email):
 
 @app.route("/delete_user/<email>")
 def delete_user(email):
+    if not database_ready_or_flash():
+        return redirect("/")
+
     if session.get("role") != "admin":
         return redirect("/")
 

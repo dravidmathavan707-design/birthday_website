@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | Birthday Project</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+    <main class="auth-container">
+        <div class="card">
+            <h2>Login</h2>
+            <p class="muted">Enter your Gmail and password to login.</p>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <p class="alert">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="form-grid">
+                <input type="email" name="email" placeholder="Enter Gmail" required />
+                <div class="password-wrap">
+                    <input id="login-password" type="password" name="password" placeholder="Enter Password" required />
+                    <button type="button" id="toggle-password" class="toggle-password" aria-label="Show password">Show</button>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+
+            <p class="muted">No account? <a href="/register">Create Account</a></p>
+        </div>
+    </main>
+    <script>
+        const passwordInput = document.getElementById("login-password");
+        const toggleButton = document.getElementById("toggle-password");
+
+        if (passwordInput && toggleButton) {
+            toggleButton.addEventListener("click", () => {
+                const isPassword = passwordInput.type === "password";
+                passwordInput.type = isPassword ? "text" : "password";
+                toggleButton.textContent = isPassword ? "Hide" : "Show";
+                toggleButton.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
+            });
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/ui_loading.js') }}"></script>
+</body>
+</html>

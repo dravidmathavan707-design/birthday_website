@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Birthday | Birthday Project</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="birthday-body" data-user-name="{{ name }}">
+    {% if preview %}
+        <div class="admin-banner">Admin Preview Mode</div>
+    {% endif %}
+
+    <div id="overlay" role="button" tabindex="0" aria-label="Start birthday experience">
+        <div class="center-touch reveal-hint">Touch the center to open your birthday surprise</div>
+        <div id="fire-ring"></div>
+    </div>
+
+    <main id="main-content">
+        <div id="dark-transition" class="dark-transition"></div>
+        <section id="cake-screen" class="phase active">
+            <h1 id="title">Happy Birthday {{ name }} 🎉</h1>
+            <div id="balloons"></div>
+            <div id="cake" class="cake-art" aria-label="Birthday Cake" role="img">
+                <div class="candles">
+                    <span class="candle"><i class="flame"></i></span>
+                    <span class="candle"><i class="flame"></i></span>
+                    <span class="candle"><i class="flame"></i></span>
+                </div>
+                <div class="cake-top"></div>
+                <div class="cake-layer layer-1"></div>
+                <div class="cake-layer layer-2"></div>
+                <div class="cake-base"></div>
+            </div>
+            <p id="cake-action-text" class="cake-action-text">Click the cake to blow candles ✨</p>
+            <div id="wish-card" class="wish-card">
+                <p class="wish-line">Dear <strong>{{ name }}</strong>,</p>
+                <p id="wish-typing" class="wish-line wish-typing"></p>
+                <p class="wish-line">May this year bring happiness, health, and success.</p>
+            </div>
+        </section>
+
+        <section id="fireworks-screen" class="phase">
+            <canvas id="fireworks-canvas"></canvas>
+            <div id="moon-center" class="moon-center" aria-hidden="true">
+                <div class="moon-glow"></div>
+                <img class="moon-photo" src="{{ url_for('static', filename='images/img1.jpg') }}" alt="Moon" />
+            </div>
+            <h2 class="wish-text">Happy Birthday {{ name }}</h2>
+            <p class="wish-subtext">Keep smiling, keep shining, and make every dream real ✨</p>
+
+            <div id="final-note-panel" class="final-note-panel">
+                <h3>Note</h3>
+                <p class="note-intro">
+                    Write your best incident of the year, your relationship memories, your dreams,
+                    and the dream person you want in your life. Let this birthday note become your next-year inspiration.
+                </p>
+                {% if preview %}
+                    <p class="muted">Admin preview mode: notes are available for real users on their birthday screen.</p>
+                {% else %}
+                    <form method="POST" action="/add_note?next=/dashboard" class="form-grid">
+                        <textarea name="note" class="note-textarea" rows="4" maxlength="300" placeholder="Write your beautiful note, life goals, dream relationship, and special memories..." required></textarea>
+                        <button type="submit">Save Note</button>
+                    </form>
+                {% endif %}
+            </div>
+            {% if preview %}
+                <a class="button" href="/admin">Back to Admin</a>
+            {% else %}
+                <a class="button" href="/dashboard">Back to Dashboard</a>
+            {% endif %}
+        </section>
+    </main>
+
+    <audio id="music" loop>
+        <source src="{{ url_for('static', filename='music/birthday.mp3') }}" type="audio/mpeg" />
+    </audio>
+
+    <div id="audio-controls" class="audio-controls">
+        <button id="toggle-music" type="button">Music: On</button>
+        <button id="toggle-fireworks-sound" type="button">Fireworks: On</button>
+        <label for="volume-slider" class="muted">Volume</label>
+        <input id="volume-slider" type="range" min="0" max="100" value="60" />
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui_loading.js') }}"></script>
+</body>
+</html>

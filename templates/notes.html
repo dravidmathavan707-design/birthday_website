@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Notes | Birthday Project</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+    <main class="container">
+        <section class="card">
+            <h2>Notes by {{ user.name }}</h2>
+            <ul class="notes-list">
+                {% for note in user.notes|reverse %}
+                    <li>
+                        <p>{{ note.text }}</p>
+                        <small>{{ note.date }}</small>
+                    </li>
+                {% else %}
+                    <li class="muted">No notes available.</li>
+                {% endfor %}
+            </ul>
+            <a class="text-link" href="/admin">Back to Admin</a>
+        </section>
+    </main>
+</body>
+</html>

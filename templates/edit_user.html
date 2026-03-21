@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit User | Birthday Project</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+    <main class="container">
+        <section class="card">
+            <h2>Edit User</h2>
+            <form method="POST" class="form-grid">
+                <input type="text" name="name" value="{{ user.name }}" required />
+                <input type="email" name="email" value="{{ user.email }}" required />
+                <select name="gender" required>
+                    <option value="Male" {% if user.gender == 'Male' %}selected{% endif %}>Male</option>
+                    <option value="Female" {% if user.gender == 'Female' %}selected{% endif %}>Female</option>
+                    <option value="Other" {% if user.gender == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+                <input type="date" name="birthday" value="{{ user.birthday }}" required />
+                <button type="submit">Update</button>
+            </form>
+            <a class="text-link" href="/admin">Back to Admin</a>
+        </section>
+    </main>
+</body>
+</html>

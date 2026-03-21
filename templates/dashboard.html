@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | Birthday Project</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+    <main class="container">
+        <section class="card">
+            <h2>Welcome {{ user.name }}</h2>
+            <p>Email: {{ user.email }}</p>
+            <p>Gender: {{ user.gender }}</p>
+            <p>Birthday: {{ user.birthday }}</p>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <p class="alert">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% if is_birthday %}
+                <p class="success">Today is your birthday! 🎉</p>
+                {% if desktop_unlocked %}
+                    <p class="success">Desktop unlocked for today ✅</p>
+                {% else %}
+                    <a class="button" href="/birthday">Open Birthday Screen</a>
+                {% endif %}
+            {% else %}
+                <p class="alert">✨ Your celebration desktop is sleeping now and will magically unlock on your birthday! 🎂</p>
+                <p class="muted">Next birthday: {{ next_birthday }} ({{ days_left }} days left)</p>
+            {% endif %}
+
+            <a class="text-link logout-link" href="/logout">Logout</a>
+        </section>
+
+        {% if desktop_unlocked %}
+            <section class="card">
+                <h3>My Notes & Dreams</h3>
+                <form method="POST" action="/add_note" class="inline-form">
+                    <input type="text" name="note" placeholder="Write your thoughts or dreams..." required />
+                    <button type="submit">Save</button>
+                </form>
+
+                <ul class="notes-list">
+                    {% for note in user.notes|reverse %}
+                        <li>
+                            <p>{{ note.text }}</p>
+                            <small>{{ note.date }}</small>
+                        </li>
+                    {% else %}
+                        <li class="muted">No notes yet.</li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <section class="card">
+                <h3>Games & Lucky Wheel</h3>
+                <p class="muted">You finished your note — now enjoy games and spin your lucky wheel!</p>
+
+                <div class="games-grid">
+                    <div class="game-card">
+                        <h4>Lucky Wheel</h4>
+                        <div class="wheel-wrap">
+                            <div id="lucky-wheel" class="lucky-wheel"></div>
+                            <div class="wheel-pointer"></div>
+                        </div>
+                        <button id="spin-wheel" type="button">Spin</button>
+                        <p id="wheel-result" class="muted">Try your luck 🎁</p>
+                    </div>
+
+                    <div class="game-card">
+                        <h4>Guess Number (1-10)</h4>
+                        <div class="inline-form">
+                            <input id="guess-input" type="number" min="1" max="10" placeholder="Enter number" />
+                            <button id="guess-btn" type="button">Check</button>
+                        </div>
+                        <p id="guess-result" class="muted">Can you guess it?</p>
+                    </div>
+
+                    <div class="game-card">
+                        <h4>Rock Paper Scissors</h4>
+                        <div class="rps-buttons">
+                            <button class="rps-btn" data-choice="rock" type="button">✊ Rock</button>
+                            <button class="rps-btn" data-choice="paper" type="button">✋ Paper</button>
+                            <button class="rps-btn" data-choice="scissors" type="button">✌ Scissors</button>
+                        </div>
+                        <p id="rps-result" class="muted">Play against luck!</p>
+                    </div>
+                </div>
+            </section>
+        {% endif %}
+    </main>
+    <script src="{{ url_for('static', filename='js/dashboard_games.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui_loading.js') }}"></script>
+</body>
+</html>

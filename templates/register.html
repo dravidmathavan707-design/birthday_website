@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register | Birthday Project</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+    <main class="auth-container">
+        <div class="card">
+            <h2>Create Account</h2>
+            <p class="muted">Your birthday date is used to unlock the celebration screen.</p>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <p class="alert">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="form-grid">
+                <input type="text" name="name" placeholder="Full Name" required />
+                <input type="email" name="email" placeholder="Enter Gmail" required />
+                <div class="password-wrap">
+                    <input id="register-password" type="password" name="password" placeholder="Enter Password" required />
+                    <button type="button" id="toggle-register-password" class="toggle-password" aria-label="Show password">Show</button>
+                </div>
+
+                <select name="gender" required>
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <label class="muted">Birthday Date</label>
+                <input type="date" name="birthday" required />
+
+                <button type="submit">Register</button>
+            </form>
+
+            <p class="muted">Already have an account? <a href="/">Login here</a></p>
+        </div>
+    </main>
+    <script>
+        const registerPasswordInput = document.getElementById("register-password");
+        const registerToggleButton = document.getElementById("toggle-register-password");
+
+        if (registerPasswordInput && registerToggleButton) {
+            registerToggleButton.addEventListener("click", () => {
+                const isPassword = registerPasswordInput.type === "password";
+                registerPasswordInput.type = isPassword ? "text" : "password";
+                registerToggleButton.textContent = isPassword ? "Hide" : "Show";
+                registerToggleButton.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
+            });
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/ui_loading.js') }}"></script>
+</body>
+</html>

@@ -88,7 +88,7 @@ function startExperience(event) {
 
         setTimeout(() => {
             title?.classList.add("show");
-        }, 250);
+        }, 600);
 
         setTimeout(() => {
             cake?.classList.add("show");
@@ -96,20 +96,20 @@ function startExperience(event) {
             if (cakeActionText) {
                 cakeActionText.classList.add("show");
             }
-        }, 700);
+        }, 1400);
 
         setTimeout(() => {
             animateWishFormat(userName);
-        }, 1200);
+        }, 2400);
 
         setTimeout(() => {
             burstConfetti();
-        }, 1600);
+        }, 3200);
 
         setTimeout(() => {
             speakMessage(`Happy Birthday ${userName}. Wishing you a beautiful year ahead.`);
             subWish?.classList.add("show");
-        }, 2200);
+        }, 4000);
 
         if (music) {
             setTimeout(() => {

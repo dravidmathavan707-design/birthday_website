@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Friend Profile | Birthday Project{% endblock %}
+
+{% block content %}
+    <main class="container feed-layout">
+        <section class="card">
+            <div class="friend-head">
+                <img
+                    src="{{ friend.profile_image if friend.profile_image else url_for('static', filename='images/img1.jpg') }}"
+                    alt="{{ friend.name }}"
+                    class="friend-avatar large"
+                />
+                <div>
+                    <h2>{{ friend.name }}</h2>
+                    <p class="muted">{{ friend.email }}</p>
+                    <p>Birthday: {{ friend.birthday }}</p>
+                    <p class="muted">Next birthday: {{ next_birthday }} ({{ days_left }} days left)</p>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <p class="alert">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card-actions">
+                <a class="button" href="/dashboard">Back to Dashboard</a>
+                {% if admin_mode %}
+                    <a class="button button-primary" href="/preview/{{ friend.email }}">Preview Birthday Page</a>
+                    <a class="button button-accent" href="/friend/{{ friend._id }}/delete" onclick="return confirm('Delete friend and all related records?')">Delete Friend</a>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="card split-card">
+            <div id="daily-chat" class="chat-panel">
+                <h3>Daily Chat</h3>
+                <ul class="notes-list message-thread">
+                    {% for message in daily_messages %}
+                        <li class="message-bubble {% if message.sender_email and message.sender_email != session.get('user') %}message-bubble-alt{% endif %}">
+                            <p>{{ message.text }}</p>
+                            <small>{{ message.created_at }}</small>
+                        </li>
+                    {% else %}
+                        <li class="muted">No daily chat messages yet.</li>
+                    {% endfor %}
+                </ul>
+
+                <form method="POST" action="/friend/{{ friend._id }}/daily_chat" class="chat-compose">
+                    {% if admin_mode %}
+                        <input type="hidden" name="owner_email" value="{{ friend.owner_email }}" />
+                    {% endif %}
+                    <input type="text" name="text" placeholder="Send a daily message" required />
+                    <button type="submit">Send</button>
+                </form>
+            </div>
+
+            <div id="birthday-messages" class="chat-panel">
+                <h3>Birthday Messages</h3>
+                {% if can_view_birthday_messages %}
+                    <ul class="notes-list message-thread">
+                        {% for message in birthday_messages %}
+                            <li class="message-bubble {% if message.sender_email and message.sender_email != session.get('user') %}message-bubble-alt{% endif %}">
+                                <p>{{ message.text }}</p>
+                                <small>{{ message.created_at }}</small>
+                            </li>
+                        {% else %}
+                            <li class="muted">No birthday messages yet.</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="alert">Birthday messages are locked until {{ friend.name }}'s birthday.</p>
+                    <p class="muted">Hidden messages: {{ hidden_birthday_count }}</p>
+                {% endif %}
+
+                <form method="POST" action="/friend/{{ friend._id }}/birthday_message" class="chat-compose">
+                    {% if admin_mode %}
+                        <input type="hidden" name="owner_email" value="{{ friend.owner_email }}" />
+                    {% endif %}
+                    <input type="text" name="text" placeholder="Save hidden birthday wish" required />
+                    <button type="submit">Save</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="card" id="gift-planner">
+            <h3>Gift Planner</h3>
+            <form method="POST" action="/friend/{{ friend._id }}/gift" class="form-grid">
+                {% if admin_mode %}
+                    <input type="hidden" name="owner_email" value="{{ friend.owner_email }}" />
+                {% endif %}
+                <input type="text" name="title" placeholder="Gift title" required />
+                <textarea name="details" rows="3" placeholder="Gift notes, preferences, emotional context..."></textarea>
+                <div class="inline-form">
+                    <input type="text" name="budget" placeholder="Budget (optional)" />
+                    <input type="url" name="purchase_link" placeholder="Purchase link (optional)" />
+                </div>
+                <button type="submit">Save Gift Plan</button>
+            </form>
+
+            <ul class="notes-list">
+                {% for gift in gifts %}
+                    <li>
+                        <p><strong>{{ gift.title }}</strong></p>
+                        {% if gift.details %}<p>{{ gift.details }}</p>{% endif %}
+                        {% if gift.budget %}<small>Budget: {{ gift.budget }}</small><br />{% endif %}
+                        {% if gift.purchase_link %}<a href="{{ gift.purchase_link }}" target="_blank" rel="noopener noreferrer">Open gift link</a><br />{% endif %}
+                        <small>{{ gift.created_at }}</small>
+                    </li>
+                {% else %}
+                    <li class="muted">No gifts planned yet.</li>
+                {% endfor %}
+            </ul>
+
+            {% if gifts and gifts[0].purchase_link %}
+                <div class="card-actions">
+                    <a class="button button-primary" href="{{ gifts[0].purchase_link }}" target="_blank" rel="noopener noreferrer">Open Planned Gift</a>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+{% endblock %}
+
+{% block bottom_nav %}
+    <nav class="bottom-nav" aria-label="Primary navigation">
+        <a href="/dashboard" class="bottom-nav-item">⌂<span>Home</span></a>
+        <a href="/dashboard#friend-feed" class="bottom-nav-item">◎<span>Friends</span></a>
+        <a href="#daily-chat" class="bottom-nav-item active">✉<span>Messages</span></a>
+        <a href="/me" class="bottom-nav-item me-tab">
+            <span class="me-dot">{{ (session.get('user', 'u')[:1]|upper) }}</span>
+            <span>Profile</span>
+        </a>
+    </nav>
+{% endblock %}

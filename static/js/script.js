@@ -233,6 +233,18 @@ function showFireworksPhase(isEnhanced = false) {
         const notePanel = document.getElementById("final-note-panel");
         notePanel?.classList.add("show");
     }, isEnhanced ? 5200 : 6800);
+
+    setTimeout(() => {
+        document.getElementById("slideshow-panel")?.classList.add("show");
+    }, isEnhanced ? 2600 : 3200);
+
+    setTimeout(() => {
+        document.getElementById("messages-panel")?.classList.add("show");
+    }, isEnhanced ? 3500 : 4400);
+
+    setTimeout(() => {
+        document.getElementById("gifts-panel")?.classList.add("show");
+    }, isEnhanced ? 4300 : 5400);
 }
 
 function runFireworks(isEnhanced = false) {
@@ -444,3 +456,29 @@ function setupAudioControls() {
 }
 
 setupAudioControls();
+
+function setupSlideshow() {
+    const imageElement = document.getElementById("slideshow-image");
+    if (!imageElement) {
+        return;
+    }
+
+    let imageList = [];
+    try {
+        imageList = JSON.parse(imageElement.dataset.images || "[]");
+    } catch {
+        imageList = [];
+    }
+
+    if (!Array.isArray(imageList) || imageList.length <= 1) {
+        return;
+    }
+
+    let activeIndex = 0;
+    setInterval(() => {
+        activeIndex = (activeIndex + 1) % imageList.length;
+        imageElement.src = imageList[activeIndex];
+    }, 2400);
+}
+
+setupSlideshow();

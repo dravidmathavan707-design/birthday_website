@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Profile | Birthday Project{% endblock %}
+
+{% block content %}
+    <main class="container feed-layout">
+        <section class="card profile-card">
+            <div class="profile-header-row">
+                <div class="profile-avatar-lg">{{ (user.name or user.email or 'U')[:1]|upper }}</div>
+                <div>
+                    <h2>{{ user.name }}</h2>
+                    <p class="muted">{{ user.email }}</p>
+                    <p class="muted">{{ user.gender }}</p>
+                    <p>Birthday: {{ user.birthday }}</p>
+                </div>
+            </div>
+
+            <div class="profile-stats-grid">
+                <div class="profile-stat">
+                    <strong>{{ friend_count }}</strong>
+                    <span>Friends</span>
+                </div>
+                <div class="profile-stat">
+                    <strong>{{ message_count }}</strong>
+                    <span>Messages</span>
+                </div>
+                <div class="profile-stat">
+                    <strong>{{ gift_count }}</strong>
+                    <span>Gifts</span>
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <a class="button" href="/dashboard">Back to Home</a>
+                <form method="POST" action="/signout">
+                    <button class="button button-accent" type="submit">Logout</button>
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block bottom_nav %}
+    <nav class="bottom-nav" aria-label="Primary navigation">
+        <a href="/dashboard" class="bottom-nav-item">⌂<span>Home</span></a>
+        <a href="/dashboard#friend-feed" class="bottom-nav-item">◎<span>Friends</span></a>
+        <a href="/dashboard#suggestions" class="bottom-nav-item">✉<span>Messages</span></a>
+        <a href="/me" class="bottom-nav-item active me-tab">
+            <span class="me-dot">{{ (session.get('user', 'u')[:1]|upper) }}</span>
+            <span>Profile</span>
+        </a>
+    </nav>
+{% endblock %}

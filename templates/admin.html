@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard | Birthday Project</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
-</head>
-<body>
-    <main class="container">
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | Birthday Project{% endblock %}
+
+{% block content %}
+    <main class="container feed-layout">
         <section class="card">
             <h1>Admin Dashboard</h1>
             <p>Total users: {{ total_users }}</p>
+            <p>Total friend profiles: {{ total_friends }}</p>
 
             <form method="GET" action="/admin" class="inline-form admin-search-form">
                 <input type="text" name="q" value="{{ search_query }}" placeholder="Search by name or email" />
@@ -21,10 +18,11 @@
             <h3>Quick Actions</h3>
             <div class="admin-actions-row">
                 <a class="button button-primary" href="/birthday">🎂 View Birthday Animation</a>
-                <a class="button button-accent" href="/birthday?effect=cake">🍰 See Cake Animation</a>
                 <a class="button" href="/birthdays">Upcoming Birthdays</a>
                 <a class="button" href="/admin/send_today_emails">Send Today Birthday Emails</a>
-                <a class="text-link logout-link" href="/logout">Logout</a>
+                <form method="POST" action="/signout" class="admin-logout-form">
+                    <button class="text-link logout-link" type="submit">Logout</button>
+                </form>
             </div>
 
             {% with messages = get_flashed_messages() %}
@@ -34,41 +32,6 @@
                     {% endfor %}
                 {% endif %}
             {% endwith %}
-        </section>
-
-        <section class="card effects-panel">
-            <h2>Animation Effects & Options</h2>
-            <p class="muted">Preview and test birthday animation effects</p>
-            <div class="effects-grid">
-                <div class="effect-option">
-                    <a class="button button-primary" href="/birthday">🎂 Full Birthday Experience</a>
-                    <p class="small-text">Complete animation sequence with all effects</p>
-                </div>
-                <div class="effect-option">
-                    <a class="button button-success" href="/birthday?effect=reveal">✨ Reveal Animation</a>
-                    <p class="small-text">Focus on the circular reveal effect</p>
-                </div>
-                <div class="effect-option">
-                    <a class="button button-info" href="/birthday?effect=balloons">🎈 Balloons Effect</a>
-                    <p class="small-text">Highlight floating balloons animation</p>
-                </div>
-                <div class="effect-option">
-                    <a class="button button-warning" href="/birthday?effect=music">🎵 Music & Audio</a>
-                    <p class="small-text">Test background music playback</p>
-                </div>
-                <div class="effect-option">
-                    <a class="button button-accent" href="/birthday?effect=cake">🍰 Cake Cut Mode</a>
-                    <p class="small-text">Start with cake and launch finale after cutting</p>
-                </div>
-                <div class="effect-option">
-                    <a class="button button-accent" href="/birthday?effect=confetti">🎉 Confetti Burst</a>
-                    <p class="small-text">Showcase confetti & particle effects</p>
-                </div>
-                <div class="effect-option">
-                    <a class="button button-fireworks" href="/birthday?effect=fireworks">🎆 Fireworks Show</a>
-                    <p class="small-text">View the fireworks finale sequence</p>
-                </div>
-            </div>
         </section>
 
         <section class="card">
@@ -97,9 +60,7 @@
                             <td>{{ user.last_login_at or "Never" }}</td>
                             <td>{{ user.last_activity_at or "No activity" }}</td>
                             <td>
-                                <a href="/preview/{{ user.email }}">Preview</a> |
                                 <a href="/notes/{{ user.email }}">Notes</a> |
-                                <a href="/admin/send_email/{{ user.email }}">Send Email</a> |
                                 <a href="/edit_user/{{ user.email }}">Edit</a> |
                                 <a href="/delete_user/{{ user.email }}" onclick="return confirm('Delete this user?')">Delete</a>
                             </td>
@@ -112,7 +73,49 @@
                 </tbody>
             </table>
         </section>
+
+        <section class="card">
+            <h2>Friend Profiles, Chats & Gifts</h2>
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>Friend</th>
+                        <th>Friend Email</th>
+                        <th>Owner</th>
+                        <th>Birthday</th>
+                        <th>Daily Chats</th>
+                        <th>Birthday Messages</th>
+                        <th>Gifts</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for friend in friends %}
+                        <tr>
+                            <td>{{ friend.name }}</td>
+                            <td>{{ friend.email }}</td>
+                            <td>{{ friend.owner_email }}</td>
+                            <td>
+                                {{ friend.birthday }}
+                                {% if friend.is_today %}<span class="success">Today</span>{% endif %}
+                            </td>
+                            <td>{{ friend.daily_count }}</td>
+                            <td>{{ friend.birthday_count }}</td>
+                            <td>{{ friend.gift_count }}</td>
+                            <td>
+                                <a href="/friend/{{ friend.id }}">Open</a> |
+                                <a href="/preview/{{ friend.email }}">Preview</a> |
+                                <a href="/admin/send_email/{{ friend.email }}">Send Email</a> |
+                                <a href="/friend/{{ friend.id }}/delete" onclick="return confirm('Delete this friend profile?')">Delete</a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="muted">No friend profiles found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
     </main>
-    <script src="{{ url_for('static', filename='js/ui_loading.js') }}"></script>
-</body>
-</html>
+{% endblock %}

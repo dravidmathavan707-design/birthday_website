@@ -20,6 +20,7 @@
         <div id="dark-transition" class="dark-transition"></div>
         <section id="cake-screen" class="phase active">
             <h1 id="title">Happy Birthday {{ name }} 🎉</h1>
+            <p class="wish-subtext">A special story crafted by {{ owner_name }}</p>
             <div id="balloons"></div>
             <div id="cake" class="cake-art" aria-label="Birthday Cake" role="img">
                 <div class="candles">
@@ -49,13 +50,60 @@
             <h2 class="wish-text">Happy Birthday {{ name }}</h2>
             <p class="wish-subtext">Keep smiling, keep shining, and make every dream real ✨</p>
 
+            <div id="slideshow-panel" class="final-note-panel">
+                <h3>Memory Slideshow</h3>
+                <img
+                    id="slideshow-image"
+                    class="birthday-slideshow"
+                    src="{{ slideshow_images[0] if slideshow_images else url_for('static', filename='images/img1.jpg') }}"
+                    alt="Birthday memory"
+                    data-images='{{ slideshow_images|tojson }}'
+                />
+            </div>
+
+            <div id="messages-panel" class="final-note-panel">
+                <h3>Birthday Messages</h3>
+                <ul class="notes-list">
+                    {% for message in birthday_messages %}
+                        <li>
+                            <p>{{ message.text }}</p>
+                            {% if message.created_at %}<small>{{ message.created_at }}</small>{% endif %}
+                        </li>
+                    {% else %}
+                        <li class="muted">No birthday messages available yet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div id="gifts-panel" class="final-note-panel">
+                <h3>Gift Corner</h3>
+                <ul class="notes-list">
+                    {% for gift in gifts %}
+                        <li>
+                            <p><strong>{{ gift.title }}</strong></p>
+                            {% if gift.details %}<p>{{ gift.details }}</p>{% endif %}
+                            {% if gift.budget %}<small>Budget: {{ gift.budget }}</small><br />{% endif %}
+                            {% if gift.purchase_link %}<a href="{{ gift.purchase_link }}" target="_blank" rel="noopener noreferrer">Open gift link</a><br />{% endif %}
+                        </li>
+                    {% else %}
+                        <li class="muted">Gift details will appear here.</li>
+                    {% endfor %}
+                </ul>
+
+                {% if gifts and gifts[0].purchase_link %}
+                    <div class="card-actions">
+                        <a class="button button-primary" href="{{ gifts[0].purchase_link }}" target="_blank" rel="noopener noreferrer">View or Purchase Gift</a>
+                    </div>
+                {% endif %}
+            </div>
+
             <div id="final-note-panel" class="final-note-panel">
-                <h3>Note</h3>
+                <h3>Final Note</h3>
                 <p class="note-intro">
                     Write your best incident of the year, your relationship memories, your dreams,
                     and the dream person you want in your life. Let this birthday note become your next-year inspiration.
                 </p>
-                {% if preview %}
+                {% if preview or not session.get('user') %}
                     <p class="muted">Admin preview mode: notes are available for real users on their birthday screen.</p>
                 {% else %}
                     <form method="POST" action="/add_note?next=/dashboard" class="form-grid">
@@ -66,8 +114,10 @@
             </div>
             {% if preview %}
                 <a class="button" href="/admin">Back to Admin</a>
-            {% else %}
+            {% elif session.get('user') %}
                 <a class="button" href="/dashboard">Back to Dashboard</a>
+            {% else %}
+                <a class="button" href="/">Back to Login</a>
             {% endif %}
         </section>
     </main>

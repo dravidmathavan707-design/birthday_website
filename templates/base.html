@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Birthday Project{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <header class="top-nav">
+        <div class="top-nav-left">
+            <a href="/dashboard" class="brand">BirthdaySocial</a>
+        </div>
+        <div class="top-nav-center">
+            <input id="global-search" type="text" placeholder="Search friends..." aria-label="Search friends" />
+        </div>
+        <div class="top-nav-right">
+            <a href="/dashboard" class="icon-pill" title="Dashboard">⌂</a>
+            {% if session.get('role') == 'admin' %}
+                <a href="/admin" class="icon-pill" title="Admin">☰</a>
+            {% endif %}
+            <a href="/me" class="nav-me-button {% if request.path in ['/me', '/profile'] %}active{% endif %}" title="Profile" aria-label="Profile">
+                {{ (session.get('user', 'u')[:1]|upper) }}
+            </a>
+        </div>
+    </header>
+
+    {% block content %}{% endblock %}
+
+    {% block bottom_nav %}{% endblock %}
+
+    <script src="{{ url_for('static', filename='js/ui_loading.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,18 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard | Birthday Project</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
-</head>
-<body>
-    <main class="container">
-        <section class="card">
-            <h2>Welcome {{ user.name }}</h2>
-            <p>Email: {{ user.email }}</p>
-            <p>Gender: {{ user.gender }}</p>
-            <p>Birthday: {{ user.birthday }}</p>
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Birthday Project{% endblock %}
+
+{% block content %}
+    <main class="container feed-layout">
+        <section class="card hero-countdown-card">
+            {% if self_birthday_today %}
+                <h2 class="hero-glow">It’s your birthday today 🎉</h2>
+                <p class="muted">Open your cinematic birthday page now.</p>
+                <div class="card-actions">
+                    <a class="button button-primary" href="/birthday">Open Birthday Experience</a>
+                </div>
+            {% else %}
+                <h2 class="hero-glow">Your Birthday Countdown</h2>
+                <p class="muted">Keep the excitement alive until your big day.</p>
+                <div class="hero-countdown-grid" id="hero-countdown" data-target="{{ hero_target_iso }}">
+                    <div class="hero-count-item"><strong id="hero-days">{{ hero_days }}</strong><span>Days</span></div>
+                    <div class="hero-count-item"><strong id="hero-hours">{{ hero_hours }}</strong><span>Hours</span></div>
+                    <div class="hero-count-item"><strong id="hero-minutes">{{ hero_minutes }}</strong><span>Minutes</span></div>
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="card composer-card" id="account-panel">
+            <h2>Hi {{ user.name }}</h2>
+            <p class="muted">Create memories, plan gifts, and manage upcoming birthdays in one place.</p>
+            <p class="success">Birthdays today: {{ birthday_today_count }}</p>
 
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
@@ -21,80 +34,182 @@
                     {% endfor %}
                 {% endif %}
             {% endwith %}
-
-            {% if is_birthday %}
-                <p class="success">Today is your birthday! 🎉</p>
-                {% if desktop_unlocked %}
-                    <p class="success">Desktop unlocked for today ✅</p>
-                {% else %}
-                    <a class="button" href="/birthday">Open Birthday Screen</a>
-                {% endif %}
-            {% else %}
-                <p class="alert">✨ Your celebration desktop is sleeping now and will magically unlock on your birthday! 🎂</p>
-                <p class="muted">Next birthday: {{ next_birthday }} ({{ days_left }} days left)</p>
-            {% endif %}
-
-            <a class="text-link logout-link" href="/logout">Logout</a>
         </section>
 
-        {% if desktop_unlocked %}
-            <section class="card">
-                <h3>My Notes & Dreams</h3>
-                <form method="POST" action="/add_note" class="inline-form">
-                    <input type="text" name="note" placeholder="Write your thoughts or dreams..." required />
-                    <button type="submit">Save</button>
-                </form>
-
-                <ul class="notes-list">
-                    {% for note in user.notes|reverse %}
-                        <li>
-                            <p>{{ note.text }}</p>
-                            <small>{{ note.date }}</small>
-                        </li>
-                    {% else %}
-                        <li class="muted">No notes yet.</li>
-                    {% endfor %}
-                </ul>
-            </section>
-
-            <section class="card">
-                <h3>Games & Lucky Wheel</h3>
-                <p class="muted">You finished your note — now enjoy games and spin your lucky wheel!</p>
-
-                <div class="games-grid">
-                    <div class="game-card">
-                        <h4>Lucky Wheel</h4>
-                        <div class="wheel-wrap">
-                            <div id="lucky-wheel" class="lucky-wheel"></div>
-                            <div class="wheel-pointer"></div>
-                        </div>
-                        <button id="spin-wheel" type="button">Spin</button>
-                        <p id="wheel-result" class="muted">Try your luck 🎁</p>
-                    </div>
-
-                    <div class="game-card">
-                        <h4>Guess Number (1-10)</h4>
-                        <div class="inline-form">
-                            <input id="guess-input" type="number" min="1" max="10" placeholder="Enter number" />
-                            <button id="guess-btn" type="button">Check</button>
-                        </div>
-                        <p id="guess-result" class="muted">Can you guess it?</p>
-                    </div>
-
-                    <div class="game-card">
-                        <h4>Rock Paper Scissors</h4>
-                        <div class="rps-buttons">
-                            <button class="rps-btn" data-choice="rock" type="button">✊ Rock</button>
-                            <button class="rps-btn" data-choice="paper" type="button">✋ Paper</button>
-                            <button class="rps-btn" data-choice="scissors" type="button">✌ Scissors</button>
-                        </div>
-                        <p id="rps-result" class="muted">Play against luck!</p>
-                    </div>
+        <section class="card">
+            <h3>Social Requests</h3>
+            <div class="request-grid">
+                <div>
+                    <h4>Incoming</h4>
+                    <ul class="notes-list">
+                        {% for req in incoming_requests %}
+                            <li>
+                                <p><strong>{{ req.from_name }}</strong> sent a friend request</p>
+                                <small>{{ req.from_email }}</small>
+                                <div class="card-actions">
+                                    <form method="POST" action="/friend_request/respond/{{ req.id }}">
+                                        <input type="hidden" name="action" value="accept" />
+                                        <button class="action-chat" type="submit">Accept</button>
+                                    </form>
+                                    <form method="POST" action="/friend_request/respond/{{ req.id }}">
+                                        <input type="hidden" name="action" value="reject" />
+                                        <button class="button-accent" type="submit">Reject</button>
+                                    </form>
+                                </div>
+                            </li>
+                        {% else %}
+                            <li class="muted">No incoming requests.</li>
+                        {% endfor %}
+                    </ul>
                 </div>
-            </section>
-        {% endif %}
+                <div>
+                    <h4>Pending Sent</h4>
+                    <ul class="notes-list">
+                        {% for req in outgoing_requests %}
+                            <li>
+                                <p>Waiting for <strong>{{ req.to_name }}</strong></p>
+                                <small>{{ req.to_email }}</small>
+                            </li>
+                        {% else %}
+                            <li class="muted">No pending outgoing requests.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h3>Discover Users</h3>
+            <div class="discover-grid">
+                {% for person in suggested_users %}
+                    <article class="suggestion-card">
+                        <p><strong>{{ person.name }}</strong></p>
+                        <p class="muted">{{ person.email }}</p>
+                        <p class="muted">Birthday: {{ person.birthday }} ({{ person.days_left }} day(s) left)</p>
+                        <div class="card-actions">
+                            <a class="button action-chat" href="/friend_request/send/{{ person.email }}">Send Friend Request</a>
+                        </div>
+                    </article>
+                {% else %}
+                    <p class="muted">No suggested users available right now.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="card" id="suggestions">
+            <h3>Smart Suggestions</h3>
+            <div class="suggestion-grid">
+                {% for suggestion in suggestions %}
+                    <article class="suggestion-card {% if suggestion.priority == 'today' %}suggestion-today{% elif suggestion.priority == 'soon' %}suggestion-soon{% endif %}">
+                        <p>{{ suggestion.message }}</p>
+                        <div class="card-actions">
+                            {% if suggestion.type == 'today' and suggestion.birthday_link %}
+                                <a class="button button-primary" href="{{ suggestion.birthday_link }}">View Birthday Experience</a>
+                            {% endif %}
+                            <a class="button action-chat" href="/friend/{{ suggestion.friend_id }}#daily-chat">Chat</a>
+                            <a class="button action-gift" href="/friend/{{ suggestion.friend_id }}#gift-planner">Send Gift</a>
+                            <a class="button action-message" href="/friend/{{ suggestion.friend_id }}#birthday-messages">Birthday Message</a>
+                        </div>
+                    </article>
+                {% else %}
+                    <p class="muted">No urgent birthdays in the next few days. Keep planning ahead ✨</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="card" id="friend-feed">
+            <h3>Friend Feed</h3>
+            <div class="friend-grid">
+                {% for friend in friends %}
+                    <article class="friend-card" data-name="{{ friend.name|lower }}" data-email="{{ friend.email|lower }}">
+                        <img
+                            src="{{ friend.profile_image if friend.profile_image else url_for('static', filename='images/img1.jpg') }}"
+                            alt="{{ friend.name }} profile image"
+                            class="friend-avatar"
+                        />
+                        <h4>{{ friend.name }}</h4>
+                        <p class="muted">@{{ friend.email }}</p>
+                        <p class="meta-chip">Birthday: {{ friend.birthday }}</p>
+
+                        {% if friend.is_birthday_today %}
+                            <p class="success">Birthday today 🎉</p>
+                        {% else %}
+                            <p class="muted">Birthday in {{ friend.days_left }} day(s)</p>
+                        {% endif %}
+
+                        <p class="muted">Hidden birthday messages: {{ friend.hidden_birthday_messages }}</p>
+                        <p class="muted">Gift plans: {{ friend.gift_count }}</p>
+
+                        <div class="card-actions">
+                            <a class="button action-chat" href="/friend/{{ friend.id }}#daily-chat">Chat</a>
+                            <a class="button action-message" href="/friend/{{ friend.id }}#birthday-messages">Birthday Message</a>
+                            <a class="button action-gift" href="/friend/{{ friend.id }}#gift-planner">Send Gift</a>
+                            {% if friend.is_birthday_today and friend.birthday_link %}
+                                <a class="button button-success" href="{{ friend.birthday_link }}">View Birthday Experience</a>
+                            {% endif %}
+                            <a class="button button-accent" href="/friend/{{ friend.id }}/delete" onclick="return confirm('Delete friend and all related chats/gifts?')">Delete</a>
+                        </div>
+                    </article>
+                {% else %}
+                    <p class="muted">No friends yet. Add your first friend above to start planning a birthday story.</p>
+                {% endfor %}
+            </div>
+        </section>
     </main>
+{% endblock %}
+
+{% block bottom_nav %}
+    <nav class="bottom-nav" aria-label="Primary navigation">
+        <a href="/dashboard" class="bottom-nav-item active">⌂<span>Home</span></a>
+        <a href="/dashboard#friend-feed" class="bottom-nav-item">◎<span>Friends</span></a>
+        <a href="/dashboard#suggestions" class="bottom-nav-item">✉<span>Messages</span></a>
+        <a href="/me" class="bottom-nav-item me-tab">
+            <span class="me-dot">{{ (session.get('user', 'u')[:1]|upper) }}</span>
+            <span>Profile</span>
+        </a>
+    </nav>
+{% endblock %}
+
+{% block extra_scripts %}
     <script src="{{ url_for('static', filename='js/dashboard_games.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/ui_loading.js') }}"></script>
-</body>
-</html>
+    <script>
+        const searchInput = document.getElementById('global-search');
+        const friendCards = Array.from(document.querySelectorAll('.friend-card'));
+        const heroCountdown = document.getElementById('hero-countdown');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value.trim().toLowerCase();
+                friendCards.forEach((card) => {
+                    const name = card.dataset.name || '';
+                    const email = card.dataset.email || '';
+                    const visible = !query || name.includes(query) || email.includes(query);
+                    card.style.display = visible ? '' : 'none';
+                });
+            });
+        }
+
+        if (heroCountdown) {
+            const daysNode = document.getElementById('hero-days');
+            const hoursNode = document.getElementById('hero-hours');
+            const minutesNode = document.getElementById('hero-minutes');
+            const target = new Date(heroCountdown.dataset.target);
+
+            const tick = () => {
+                const now = new Date();
+                const diffMs = Math.max(0, target.getTime() - now.getTime());
+                const totalMinutes = Math.floor(diffMs / 60000);
+                const days = Math.floor(totalMinutes / (60 * 24));
+                const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+                const minutes = totalMinutes % 60;
+
+                if (daysNode) daysNode.textContent = String(days);
+                if (hoursNode) hoursNode.textContent = String(hours);
+                if (minutesNode) minutesNode.textContent = String(minutes);
+            };
+
+            tick();
+            setInterval(tick, 30000);
+        }
+    </script>
+{% endblock %}

@@ -36,6 +36,34 @@
             {% endwith %}
         </section>
 
+        <section class="card dashboard-highlight-card">
+            <h3>Quick Actions</h3>
+            <div class="dashboard-stat-grid">
+                <article class="dashboard-stat-item">
+                    <strong>{{ friends|length }}</strong>
+                    <span>Total Friends</span>
+                </article>
+                <article class="dashboard-stat-item">
+                    <strong>{{ incoming_requests|length }}</strong>
+                    <span>Incoming Requests</span>
+                </article>
+                <article class="dashboard-stat-item">
+                    <strong>{{ suggestions|length }}</strong>
+                    <span>Smart Suggestions</span>
+                </article>
+                <article class="dashboard-stat-item">
+                    <strong>{{ birthday_today_count }}</strong>
+                    <span>Birthdays Today</span>
+                </article>
+            </div>
+            <div class="dashboard-quick-grid">
+                <a class="dashboard-quick-link" href="/me">Update Profile</a>
+                <a class="dashboard-quick-link" href="#friend-feed">Open Friend Feed</a>
+                <a class="dashboard-quick-link" href="#suggestions">Plan Birthday Tasks</a>
+                <a class="dashboard-quick-link" href="/birthdays">View All Birthdays</a>
+            </div>
+        </section>
+
         <section class="card">
             <h3>Social Requests</h3>
             <div class="request-grid">

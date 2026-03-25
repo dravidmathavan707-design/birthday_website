@@ -156,6 +156,64 @@ a {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
 }
 
+.dashboard-highlight-card {
+    background: linear-gradient(145deg, rgba(76, 201, 240, 0.12), rgba(247, 37, 133, 0.12));
+    border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.dashboard-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.dashboard-stat-item {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(8, 8, 18, 0.28);
+    text-align: center;
+}
+
+.dashboard-stat-item strong {
+    display: block;
+    font-size: 24px;
+    color: #fff;
+}
+
+.dashboard-stat-item span {
+    font-size: 12px;
+    color: #d1d5db;
+}
+
+.dashboard-quick-grid {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+}
+
+.dashboard-quick-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    text-align: center;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: #ffffff;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    transition: transform 0.25s var(--smooth-ease), box-shadow 0.25s var(--smooth-ease), filter 0.25s var(--smooth-ease);
+}
+
+.dashboard-quick-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(28, 19, 53, 0.45);
+    filter: brightness(1.05);
+}
+
 .hero-countdown-card {
     background: linear-gradient(130deg, rgba(255, 77, 109, 0.16), rgba(76, 201, 240, 0.16));
     border: 1px solid rgba(255, 255, 255, 0.22);

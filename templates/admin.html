@@ -16,10 +16,16 @@
             </form>
 
             <h3>Quick Actions</h3>
+            <p>
+                Auto tomorrow reminder mode:
+                <strong>{% if auto_tomorrow_reminder_enabled %}YES{% else %}NO{% endif %}</strong>
+            </p>
             <div class="admin-actions-row">
                 <a class="button button-primary" href="/birthday">🎂 View Birthday Animation</a>
                 <a class="button" href="/birthdays">Upcoming Birthdays</a>
-                <a class="button" href="/admin/send_today_emails">Send Today Birthday Emails</a>
+                <a class="button" href="/admin/send_today_emails">Send Tomorrow Reminder Emails</a>
+                <a class="button button-success" href="/admin/reminder_mode/yes">Reminder Mode: YES</a>
+                <a class="button button-warning" href="/admin/reminder_mode/no">Reminder Mode: NO</a>
                 <form method="POST" action="/signout" class="admin-logout-form">
                     <button class="text-link logout-link" type="submit">Logout</button>
                 </form>

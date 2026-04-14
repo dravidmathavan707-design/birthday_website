@@ -23,6 +23,7 @@ MAIL_SENDER = os.getenv("MAIL_SENDER", "")
 MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "")
 MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
 MAIL_PORT = int(os.getenv("MAIL_PORT", "587"))
+AUTO_TOMORROW_REMINDER_ENABLED = os.getenv("AUTO_TOMORROW_REMINDER_ENABLED", "yes").strip().lower() in {"1", "true", "yes", "on"}
 
 MONGO_URI = os.getenv(
     "MONGO_URI",
@@ -181,6 +182,15 @@ def is_birthday_today(birthday_string):
     return birthday_date.month == today.month and birthday_date.day == today.day
 
 
+def is_birthday_tomorrow(birthday_string):
+    birthday_date = parse_date(birthday_string)
+    if not birthday_date:
+        return False
+
+    tomorrow = datetime.now().date() + timedelta(days=1)
+    return birthday_date.month == tomorrow.month and birthday_date.day == tomorrow.day
+
+
 def can_access_birthday(user_document):
     today = datetime.now().date()
     birthday = datetime.strptime(user_document["birthday"], "%Y-%m-%d").date()
@@ -208,39 +218,66 @@ def send_birthday_email(to_email, user_name, link_url=None):
         smtp.send_message(message)
 
 
+def send_tomorrow_birthday_reminder_email(to_email, user_name, link_url=None):
+    if not MAIL_SENDER or not MAIL_PASSWORD:
+        return
+
+    message = EmailMessage()
+    message["Subject"] = "Reminder: Birthday celebration unlocks tomorrow 🎉"
+    message["From"] = MAIL_SENDER
+    message["To"] = to_email
+    message.set_content(
+        f"Hi {user_name},\n\n"
+        "Reminder: your birthday celebration is tomorrow!\n"
+        "Open this link tomorrow to start your celebration page:\n\n"
+        f"{link_url or get_base_url()}\n\n"
+        "See you tomorrow and have an amazing birthday!"
+    )
+
+    with smtplib.SMTP(MAIL_SERVER, MAIL_PORT) as smtp:
+        smtp.starttls()
+        smtp.login(MAIL_SENDER, MAIL_PASSWORD)
+        smtp.send_message(message)
+
+
 def birthday_reminder_job():
+    global AUTO_TOMORROW_REMINDER_ENABLED
+
     if not init_database():
+        return
+
+    if not AUTO_TOMORROW_REMINDER_ENABLED:
         return
 
     today = datetime.now().strftime("%Y-%m-%d")
 
     for user in users.find({"role": "user"}):
-        if not is_birthday_today(user.get("birthday")):
+        if not is_birthday_tomorrow(user.get("birthday")):
             continue
 
-        if user.get("birthday_email_sent_on") == today:
+        if user.get("birthday_reminder_email_sent_on") == today:
             continue
 
         user_link = f"{get_base_url()}/birthday"
-        send_birthday_email(user.get("email", ""), user.get("name") or "Friend", link_url=user_link)
+        send_tomorrow_birthday_reminder_email(user.get("email", ""), user.get("name") or "Friend", link_url=user_link)
         users.update_one(
             {"_id": user["_id"]},
-            {"$set": {"birthday_email_sent_on": today}},
+            {"$set": {"birthday_reminder_email_sent_on": today}},
         )
 
     for friend in friends.find({}):
-        if not is_birthday_today(friend.get("birthday")):
+        if not is_birthday_tomorrow(friend.get("birthday")):
             continue
 
-        if friend.get("last_birthday_email_sent") == today:
+        if friend.get("last_birthday_reminder_email_sent") == today:
             continue
 
         token = create_friend_birthday_token(friend)
         link = f"{get_base_url()}/birthday/friend/{token}"
-        send_birthday_email(friend.get("email", ""), friend.get("name") or "Friend", link_url=link)
+        send_tomorrow_birthday_reminder_email(friend.get("email", ""), friend.get("name") or "Friend", link_url=link)
         friends.update_one(
             {"_id": friend["_id"]},
-            {"$set": {"last_birthday_email_sent": today}},
+            {"$set": {"last_birthday_reminder_email_sent": today}},
         )
 
 
@@ -1126,6 +1163,7 @@ def admin():
         total_users=total_users,
         total_friends=total_friends,
         search_query=search_query,
+        auto_tomorrow_reminder_enabled=AUTO_TOMORROW_REMINDER_ENABLED,
     )
 
 
@@ -1158,7 +1196,33 @@ def admin_send_today_emails():
         return redirect("/")
 
     birthday_reminder_job()
-    flash("Birthday emails for today's users have been triggered")
+    if AUTO_TOMORROW_REMINDER_ENABLED:
+        flash("Tomorrow birthday reminder emails have been triggered")
+    else:
+        flash("Reminder mode is OFF. Turn it ON to send tomorrow reminder emails.")
+    return redirect("/admin")
+
+
+@app.route("/admin/reminder_mode/<mode>")
+def admin_set_reminder_mode(mode):
+    global AUTO_TOMORROW_REMINDER_ENABLED
+
+    if not database_ready_or_flash():
+        return redirect("/")
+
+    if session.get("role") != "admin":
+        return redirect("/")
+
+    normalized = (mode or "").strip().lower()
+    if normalized in {"yes", "on", "true", "1"}:
+        AUTO_TOMORROW_REMINDER_ENABLED = True
+        flash("Automatic tomorrow reminder mode set to YES")
+    elif normalized in {"no", "off", "false", "0"}:
+        AUTO_TOMORROW_REMINDER_ENABLED = False
+        flash("Automatic tomorrow reminder mode set to NO")
+    else:
+        flash("Invalid mode. Use yes or no.")
+
     return redirect("/admin")
 
 

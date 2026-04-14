@@ -16,6 +16,16 @@
         <div id="fire-ring"></div>
     </div>
 
+    <div id="experience-tools" class="experience-tools" aria-label="Experience controls">
+        <div class="experience-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <span id="experience-progress" class="experience-progress-fill"></span>
+        </div>
+        <div class="experience-buttons">
+            <button id="skip-experience" type="button">Skip Intro</button>
+            <button id="replay-experience" type="button">Replay</button>
+        </div>
+    </div>
+
     <main id="main-content">
         <div id="dark-transition" class="dark-transition"></div>
         <section id="cake-screen" class="phase active">
@@ -61,7 +71,7 @@
                 />
             </div>
 
-            <div id="messages-panel" class="final-note-panel">
+            <div id="messages-panel" class="final-note-panel scroll-panel">
                 <h3>Birthday Messages</h3>
                 <ul class="notes-list">
                     {% for message in birthday_messages %}
@@ -75,7 +85,7 @@
                 </ul>
             </div>
 
-            <div id="gifts-panel" class="final-note-panel">
+            <div id="gifts-panel" class="final-note-panel scroll-panel">
                 <h3>Gift Corner</h3>
                 <ul class="notes-list">
                     {% for gift in gifts %}
@@ -125,13 +135,6 @@
     <audio id="music" loop>
         <source src="{{ url_for('static', filename='music/birthday.mp3') }}" type="audio/mpeg" />
     </audio>
-
-    <div id="audio-controls" class="audio-controls">
-        <button id="toggle-music" type="button">Music: On</button>
-        <button id="toggle-fireworks-sound" type="button">Fireworks: On</button>
-        <label for="volume-slider" class="muted">Volume</label>
-        <input id="volume-slider" type="range" min="0" max="100" value="60" />
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>

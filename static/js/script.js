@@ -5,6 +5,7 @@ let fireworksAudioContext;
 let fireworksSoundEnabled = true;
 let musicEnabled = true;
 let effectsVolume = 0.6;
+let experienceProgressTimer = null;
 
 function ensureFireworksAudio() {
     if (!window.AudioContext && !window.webkitAudioContext) {
@@ -72,6 +73,8 @@ function startExperience(event) {
     const subWish = document.querySelector(".wish-subtext");
     const darkTransition = document.getElementById("dark-transition");
     const cakeActionText = document.getElementById("cake-action-text");
+    const progressFill = document.getElementById("experience-progress");
+    const progressTrack = document.querySelector(".experience-progress-track");
 
     if (!overlay || !main) {
         return;
@@ -81,6 +84,26 @@ function startExperience(event) {
     const clickY = event?.clientY ?? window.innerHeight / 2;
     ensureFireworksAudio();
     overlay.style.clipPath = `circle(0% at ${clickX}px ${clickY}px)`;
+
+    const introTotalMs = 12400;
+    const introStart = Date.now();
+    if (experienceProgressTimer) {
+        clearInterval(experienceProgressTimer);
+    }
+    experienceProgressTimer = setInterval(() => {
+        const elapsed = Date.now() - introStart;
+        const pct = Math.min(100, Math.round((elapsed / introTotalMs) * 100));
+        if (progressFill) {
+            progressFill.style.width = `${pct}%`;
+        }
+        if (progressTrack) {
+            progressTrack.setAttribute("aria-valuenow", String(pct));
+        }
+        if (pct >= 100) {
+            clearInterval(experienceProgressTimer);
+            experienceProgressTimer = null;
+        }
+    }, 120);
 
     setTimeout(() => {
         overlay.style.display = "none";
@@ -139,6 +162,18 @@ function startDarkToFireworksTransition(isEnhanced) {
 
     setTimeout(() => {
         showFireworksPhase(isEnhanced);
+        const progressFill = document.getElementById("experience-progress");
+        const progressTrack = document.querySelector(".experience-progress-track");
+        if (experienceProgressTimer) {
+            clearInterval(experienceProgressTimer);
+            experienceProgressTimer = null;
+        }
+        if (progressFill) {
+            progressFill.style.width = "100%";
+        }
+        if (progressTrack) {
+            progressTrack.setAttribute("aria-valuenow", "100");
+        }
         if (darkTransition) {
             darkTransition.classList.remove("active");
         }
@@ -417,46 +452,6 @@ function enableCakeInteraction() {
 
 enableCakeInteraction();
 
-function setupAudioControls() {
-    const music = document.getElementById("music");
-    const musicButton = document.getElementById("toggle-music");
-    const fireworksButton = document.getElementById("toggle-fireworks-sound");
-    const volumeSlider = document.getElementById("volume-slider");
-
-    if (musicButton) {
-        musicButton.addEventListener("click", () => {
-            musicEnabled = !musicEnabled;
-            musicButton.textContent = `Music: ${musicEnabled ? "On" : "Off"}`;
-            if (music) {
-                if (musicEnabled) {
-                    music.volume = effectsVolume;
-                    music.play().catch(() => {});
-                } else {
-                    music.pause();
-                }
-            }
-        });
-    }
-
-    if (fireworksButton) {
-        fireworksButton.addEventListener("click", () => {
-            fireworksSoundEnabled = !fireworksSoundEnabled;
-            fireworksButton.textContent = `Fireworks: ${fireworksSoundEnabled ? "On" : "Off"}`;
-        });
-    }
-
-    if (volumeSlider) {
-        volumeSlider.addEventListener("input", () => {
-            effectsVolume = Number(volumeSlider.value) / 100;
-            if (music) {
-                music.volume = effectsVolume;
-            }
-        });
-    }
-}
-
-setupAudioControls();
-
 function setupSlideshow() {
     const imageElement = document.getElementById("slideshow-image");
     if (!imageElement) {
@@ -482,3 +477,32 @@ function setupSlideshow() {
 }
 
 setupSlideshow();
+
+function setupExperienceControls() {
+    const skipButton = document.getElementById("skip-experience");
+    const replayButton = document.getElementById("replay-experience");
+    const overlay = document.getElementById("overlay");
+    const main = document.getElementById("main-content");
+
+    if (skipButton) {
+        skipButton.addEventListener("click", () => {
+            if (overlay) {
+                overlay.style.display = "none";
+            }
+            if (main) {
+                main.style.display = "block";
+            }
+            if (!fireworksStarted) {
+                startDarkToFireworksTransition(true);
+            }
+        });
+    }
+
+    if (replayButton) {
+        replayButton.addEventListener("click", () => {
+            window.location.reload();
+        });
+    }
+}
+
+setupExperienceControls();
